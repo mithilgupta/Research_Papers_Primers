@@ -6,4 +6,5 @@ Welcome to my collection of research paper primers and technical notes.
 
 ## Papers
 
-- [Advisor Models: A Primer for Machine Learning Practitioners](papers/advisor_models_primer.qmd)
+- [Advisor Models Primer](papers/advisor_models_primer.qmd)
+- [Download PDF](papers/advisor_models_primer.pdf)
