@@ -33,6 +33,15 @@ jobs:
 
       - name: Install TinyTeX
         uses: quarto-dev/quarto-actions/setup-tinytex@v2
+        
+      - name: Debug TinyTeX install
+        run: |
+          echo "=== which pdflatex ==="
+          which pdflatex || echo "pdflatex not found"
+          echo "=== pdflatex version ==="
+          pdflatex --version || echo "pdflatex version failed"
+          echo "=== tlmgr --version ==="
+          tlmgr --version || echo "tlmgr version failed"
 
       - name: Render site
         uses: quarto-dev/quarto-actions/render@v2
