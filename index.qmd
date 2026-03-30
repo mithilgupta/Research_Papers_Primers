@@ -1,0 +1,9 @@
+---
+title: "Research Papers Primers"
+---
+
+Welcome to my collection of research paper primers and technical notes.
+
+## Papers
+
+- [Advisor Models: A Primer for Machine Learning Practitioners](papers/advisor_models_primer.qmd)
