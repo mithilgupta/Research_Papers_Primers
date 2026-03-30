@@ -1,0 +1,17 @@
+project:
+  type: website
+
+website:
+  title: "Research Papers Primers"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - href: papers/advisor_models_primer.qmd
+        text: Advisor Models Primer
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
