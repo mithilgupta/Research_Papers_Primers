@@ -15,8 +15,6 @@ execute:
   message: false
 ---
 
-# Advisor Models: A Primer for Machine Learning Practitioners
-
 ## Overview
 
 This paper introduces **Advisor Models**, a practical method for improving powerful **black-box language models**—such as GPT-5 or Gemini 3 Pro—without modifying their weights. Instead of fine-tuning the frontier model itself, the method trains a **small open-weight model** to generate dynamic, input-specific natural-language advice that is inserted into the black-box model’s prompt.
