@@ -1,0 +1,157 @@
+---
+title: "Advisor Models: A Primer for Machine Learning Practitioners"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: false
+  pdf:
+    toc: true
+    toc-depth: 3
+    number-sections: false
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+# Advisor Models: A Primer for Machine Learning Practitioners
+
+## Overview
+
+This paper introduces **Advisor Models**, a practical method for improving powerful **black-box language models**—such as GPT-5 or Gemini 3 Pro—without modifying their weights. Instead of fine-tuning the frontier model itself, the method trains a **small open-weight model** to generate dynamic, input-specific natural-language advice that is inserted into the black-box model’s prompt.
+
+The key idea is simple but powerful: rather than treating prompt engineering as a one-time manual task, the paper treats it as a **learnable policy** trained with reinforcement learning. That allows the system to adapt guidance to each input, each user, and each interaction context, while still working with API-only models.
+
+## The Problem
+
+Modern frontier LLMs are usually deployed as black-box APIs, which means practitioners cannot access gradients or fine-tune the model’s internal parameters. In most real-world settings, that leaves teams with only prompt engineering, system prompts, retrieval, or wrapper logic as ways to adapt the model.
+
+That becomes a problem when applications need **deep specialization**. The paper focuses on three cases where static prompts are often not enough:
+
+- **Specialized reasoning**, such as tax-rule computation or translation in extremely low-resource languages.
+- **Agent efficiency**, where a model may solve the task but do so with too many expensive tool calls or steps.
+- **Personalization**, where each user has hidden preferences about style, detail, tone, or structure that are not explicitly stated in the input.
+
+Static prompt optimization methods usually produce a single prompt that is reused for all instances of a task. The paper argues that this is fundamentally too rigid for settings where behavior should depend on the specific input, current trajectory, or user preference.
+
+## The Core Idea
+
+Advisor Models add a second model to the pipeline: a small, trainable **advisor**. The advisor reads the current task input and generates **instance-specific advice** in natural language. That advice is then added to the prompt of the large black-box model, called the **student**, which produces the final answer.
+
+The student model remains completely frozen throughout training and deployment. Only the advisor is trained. In other words, the system improves a frontier model *indirectly* by learning what kinds of language-based guidance reliably produce better outcomes from that model.
+
+A useful mental model is this: the advisor acts like a small expert coach sitting beside the big model, whispering task-specific instructions before the big model responds.
+
+## How It Works
+
+### Basic pipeline
+
+At inference time, the workflow is straightforward:
+
+1. A user input arrives.
+2. The advisor model reads the input and produces advice.
+3. The advice is inserted into the black-box model’s context.
+4. The black-box model produces the final answer.
+
+This advice is not fixed across all examples. It changes per input, which is exactly what makes the approach more flexible than standard prompt optimization.
+
+### Training
+
+The advisor is trained with reinforcement learning using **Group Relative Policy Optimization (GRPO)**. During training, the advisor generates candidate advice, the student responds using that advice, and a task-specific reward is computed from the student’s final output.
+
+Examples of rewards in the paper include:
+
+- Correctness on tax calculation tasks.
+- chrF similarity for low-resource translation.
+- A reward that balances correctness and number of steps in software-engineering agent tasks.
+- Preference-matching rewards in personalization settings such as reading level, review length, and explanation style.
+
+The advisor is then updated so that advice leading to higher reward becomes more likely in the future. Importantly, this training requires **only API access** to the frontier model, not model internals.
+
+### Architectural variants
+
+The paper studies several forms of the advisor pipeline:
+
+- **2-step setup**: the advisor sees the user input, gives advice, and the student answers.
+- **3-step setup**: the student first drafts an answer, the advisor critiques or guides revision, and the student generates a final response.
+- **Multi-turn setup**: in agentic environments, the advisor gives updated advice throughout the trajectory as the student takes actions and receives observations.
+
+The 3-step version works especially well in complex reasoning tasks because it narrows the advisor’s role into something like a verifier or corrective guide.
+
+## What the Experiments Show
+
+The paper evaluates Advisor Models on both **specialized reasoning** tasks and **personalization** tasks.
+
+### Specialized reasoning and efficiency
+
+The method is tested on three representative settings:
+
+| Task | Baseline | With Advisor | Main Takeaway |
+|------|----------|--------------|---------------|
+| RuleArena Taxes | GPT-5 accuracy 31.2% | 53.6% | Large lift on complex rule-following |
+| SWE Agent Efficiency | Gemini 3 Pro average steps 31.7 | 26.3 | Fewer steps with resolve rate preserved |
+| MTOB Kalamang Translation | GPT-5 chrF 46.2 | 47.8 | Small but significant gain when headroom exists |
+
+On the cheaper student models used during training, the gains are often even larger. For example, on RuleArena Taxes, GPT-4.1 mini improves from 64.8% to 76.8% with a trained advisor. On MTOB translation, GPT-4o mini improves from about 33.1 chrF to 45.8, approaching the human expert baseline of 51.6.
+
+A subtle but important result is that **untrained advisors can hurt** performance. This shows that the improvement is not coming from simply adding more words to the prompt; it comes from actually learning useful guidance.
+
+### Personalization
+
+The personalization results are especially striking. The system is asked to infer hidden user preferences from reward signals alone, without explicit labels.
+
+The paper studies:
+
+- Review writing where each user prefers a certain length.
+- Review writing where each user prefers a certain reading level.
+- Math-solution generation where each learner has preferences about multiple methods and whether the solution asks the reader questions.
+
+Advisor Models nearly saturate these tasks. Reported results include roughly 0.94 reward on Review Length, 99.6% accuracy on Review Level, and 0.948 reward on Math Solutions. Static prompt methods such as PAG and GEPA only deliver modest gains and remain far below the advisor approach.
+
+One of the paper’s most interesting findings is that Advisor Models can even outperform an **in-context oracle** that explicitly provides all preferences in the prompt. The likely reason is that dynamic advice is more effective than forcing the student to interpret a static profile every time.
+
+## Why This Matters
+
+The paper is important because it offers a new paradigm for **parametric optimization of black-box models**. Instead of accepting API models as fixed systems that can only be nudged by static prompts, it shows that practitioners can build a trainable outer loop around them.
+
+That matters for several reasons:
+
+- **It is practical.** Many teams use frontier APIs and cannot fine-tune them even if they want to.
+- **It is cost-effective.** Advisors can be trained with lower-cost student models and then transferred to more expensive frontier models.
+- **It is interpretable.** The advisor’s outputs are readable natural language, so practitioners can inspect what the system learned.
+- **It is robust.** Because the student model remains frozen, the system avoids catastrophic forgetting.
+
+The paper also demonstrates that advisors can transfer not only to stronger models in the same family, but even across model families in additional ablations. That makes the idea more general than task-specific prompt hacking.
+
+## Practitioner Takeaways
+
+For applied ML teams, this paper suggests a useful design pattern:
+
+1. Keep the expensive frontier model as the main engine.
+2. Train a much smaller open model to act as a task-specific advisor.
+3. Define a reward that captures what “better behavior” means in your application.
+4. Optimize the advisor with RL while leaving the frontier model unchanged.
+
+This could be useful in settings such as:
+
+- Improving a domain-specific assistant when only API access is available.
+- Making code agents more efficient in a specific repository or workflow.
+- Personalizing educational, support, or review-generation systems to individual users.
+- Enforcing behavior in rule-heavy environments where standard prompting is brittle.
+
+A strong practical advantage is that the advisor layer is modular. It can be swapped, audited, retrained, or removed without changing the base model itself.
+
+## Limitations
+
+Advisor Models are not a universal fix. The paper shows they do not help much when the frontier model is already near-optimal on a task and there is little remaining headroom. On MATH-500, for example, the advisor does not significantly improve performance because there is not much useful guidance left to discover.
+
+The method also assumes the existence of a **good reward function**. In many real applications, reward design is the hardest part. If the reward is noisy, incomplete, or misaligned, the advisor may optimize the wrong behavior.
+
+Finally, direct RL on the student model still performs better when the student’s weights are actually available. The point of Advisor Models is not to beat fine-tuning in the fully open setting, but to recover much of its benefit when the main model is a black-box API.
+
+## Final Takeaway
+
+The main contribution of this paper is conceptual as much as empirical. It shows that **prompting can be turned into a trainable control policy**. Rather than asking, “What prompt should be used for this task?” the paper asks, “What policy should generate the right advice for this exact instance?”
+
+That shift is powerful. For practitioners who rely on black-box frontier models, Advisor Models offer a concrete way to get specialization, personalization, and efficiency improvements without modifying the underlying system.
