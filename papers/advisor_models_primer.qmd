@@ -21,6 +21,8 @@ This paper introduces **Advisor Models**, a practical method for improving power
 
 The key idea is simple but powerful: rather than treating prompt engineering as a one-time manual task, the paper treats it as a **learnable policy** trained with reinforcement learning. That allows the system to adapt guidance to each input, each user, and each interaction context, while still working with API-only models.
 
+Paper link: https://arxiv.org/pdf/2510.02453
+
 ## The Problem
 
 Modern frontier LLMs are usually deployed as black-box APIs, which means practitioners cannot access gradients or fine-tune the model’s internal parameters. In most real-world settings, that leaves teams with only prompt engineering, system prompts, retrieval, or wrapper logic as ways to adapt the model.
