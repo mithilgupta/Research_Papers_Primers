@@ -1,0 +1,61 @@
+
+ - WIP - 
+
+Pre requisites needed to read the paper:
+
+## Probability and statistics
+
+- Random variables, expectations, variance, covariance, and conditional expectation (e.g., \(E[X]\), \(Var(X)\), \(Cov(X,Y)\)).
+- Common distributions: Gaussian/Normal, and basic idea of Beta distributions (at least knowing they are continuous distributions on \([0,1]\) or \([-1,1]\)).
+- Law of large numbers and central limit theorem (why sums or coordinates of high‑dimensional random vectors look approximately Gaussian).
+- Basic high-dimensional intuition: concentration of measure, especially “coordinates of a random point on the high‑dimensional sphere are almost independent and approximately Normal.”
+
+## Linear algebra and geometry
+
+- Vectors and matrices: inner products, norms (\(\|x\|_2\)), matrix–vector multiplication, orthogonal matrices.
+- Rotations in \(\mathbb{R}^d\): what it means for a matrix to be orthogonal (\(R^\top R = I\)), and that such matrices preserve norms and inner products.
+- Unit sphere \(S^{d-1}\): definition, and the idea of a vector being “uniformly random on the sphere.”
+- Geometric meaning of Euclidean distance and inner product, and how they relate to cosine similarity and nearest neighbor search.
+
+## Information theory (lightweight)
+
+- Basic idea of lossy compression: trading bits for distortion (error between original and reconstructed signal).
+- Rate–distortion viewpoint: “for a given number of bits per dimension, what is the best possible distortion you can hope for?”.
+- Differential entropy \(h(X)\) at a conceptual level, and mutual information \(I(X;Y)\) as “how many bits Y tells you about X.”
+- Shannon’s distortion–rate lower bound and the idea that it gives a fundamental limit on MSE for any compressor at a given rate.
+
+## Quantization basics
+
+- Scalar quantization: mapping a real number \(x\) to one of \(2^b\) discrete levels to minimize mean‑squared error; concept of a **codebook** and Voronoi partitions.
+- Lloyd–Max (k-means) quantizer in 1D: alternating updates of cluster boundaries and centroids to minimize average squared error.
+- Vector quantization: treating the whole vector as an object to compress, vs quantizing each coordinate independently.
+- Product quantization (PQ) idea: splitting a high‑dimensional vector into blocks and quantizing each block with its own codebook.
+
+## High-dimensional algorithms and sketching
+
+- Johnson–Lindenstrauss (JL) transform: random linear projections approximately preserve distances/inner products between vectors.
+- Basic idea of **quantized** JL (QJL): apply a random projection then quantize the projected coordinates (here to 1 bit, via sign), and still approximately preserve inner products in expectation.
+- Understanding “unbiased estimator” vs “biased but low‑variance estimator” for inner products.
+
+## Optimization and k-means
+
+- K-means in 1D and higher dimensions: objective as sum of squared distances to cluster centers, and why it gives optimal quantization for a fixed number of centers.
+- Interpreting the scalar quantizer design as solving a 1D continuous k-means problem to get the optimal centroids for a known distribution \(f_X(x)\).
+
+## Algorithms and complexity / systems
+
+- Big‑O notation for algorithmic complexity; e.g., \(O(d)\), \(O(d^2)\), \(O(d \log d)\).
+- Fast Hadamard transform (at a conceptual level): a structured orthogonal transform that can be applied in \(O(d \log d)\), used as a fast random rotation.
+- Basic GPU/accelerator concepts: matrix multiplication (GEMM), memory bandwidth vs compute, and why “vectorizable” / lookup‑table–based operations are fast on GPUs.
+
+## Deep learning and LLM context (application side)
+
+- Transformer architecture at a high level: queries, keys, values, attention scores \(QK^\top\), and the KV cache used during autoregressive decoding.
+- Why KV cache is the main memory bottleneck for long‑context LLMs, and how quantizing KV vectors can reduce memory and increase throughput.
+- Retrieval and vector databases: inner-product or cosine-similarity search, recall@k as a metric, and why approximate nearest neighbor search often uses vector quantization.
+
+## Probability / information theory tools used in proofs
+
+- Yao’s minimax principle: connecting worst‑case randomized algorithms with average‑case deterministic algorithms.
+- Using Shannon’s lower bound on distortion to derive information‑theoretic lower bounds on MSE and inner‑product error as functions of bit‑width \(b\).
+- Interpreting bounds of the form \(D_{\text{mse}} \propto 4^{-b}\) and what it means to be “within a constant factor of optimal” (e.g., a factor about \(2.7\)).
